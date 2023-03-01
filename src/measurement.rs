@@ -12,10 +12,7 @@ use redpanda::{
 
 /// Convert nanoseconds since unix epoch (in UTC) to a UTC datetime
 pub fn nanos_to_date_time(unix_ns: i64) -> LocalResult<DateTime<Utc>> {
-    Utc.timestamp_opt(
-        (unix_ns / 1_000_000_000) as i64,
-        (unix_ns % 1_000_000_000) as u32,
-    )
+    Utc.timestamp_opt(unix_ns / 1_000_000_000, (unix_ns % 1_000_000_000) as u32)
 }
 
 /// Measurement error

@@ -1,3 +1,5 @@
+//! Error type for archiving
+
 use aws_sdk_s3::Error;
 use redpanda::error::KafkaError;
 

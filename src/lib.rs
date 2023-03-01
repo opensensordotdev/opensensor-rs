@@ -9,22 +9,22 @@
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_doc_code_examples)]
 
+pub mod archiver;
 /// Trait for arrow serialization
 pub mod arrow;
-pub mod archiver;
 pub mod error;
 pub mod measurement;
 /// Trait that sensors should implement to produce parquet archives
 pub mod parquet;
-#[allow(dead_code, unused_imports)]
+#[allow(dead_code, unused_imports, missing_docs)]
 #[allow(clippy::all)]
 pub mod reflection_generated;
 pub mod sensor;
 
 #[cfg(test)]
-mod tests;
-#[cfg(test)]
 mod test_arrow;
+#[cfg(test)]
+mod tests;
 
 pub mod transducer;
 

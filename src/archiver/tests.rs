@@ -1,6 +1,5 @@
 use crate::archiver::cli::Cli;
 use crate::archiver::{create_bucket, delete_bucket};
-use crate::arrow;
 
 /// Create a test CLI that can be used for testing against the OpenSensor docker-compose
 pub fn create_test_cli() -> Cli {
@@ -54,20 +53,18 @@ pub async fn test_create_delete_bucket() {
 #[tokio::test]
 pub async fn test_upload() {}
 
-use arrow2::array::Array;
-use arrow2::error::Result;
 use arrow2::array::*;
-use arrow2::datatypes::{Field, DataType, Schema};
-use arrow2::compute::arithmetics;
-use arrow2::io::parquet::write::*;
 use arrow2::chunk::Chunk;
+use arrow2::compute::arithmetics;
+use arrow2::datatypes::{DataType, Field, Schema};
+use arrow2::error::Result;
+use arrow2::io::parquet::write::*;
 
 #[tokio::test]
 async fn test_write_parquet() -> Result<()> {
     // declare arrays
     let a = Int32Array::from(&[Some(1), None, Some(3)]);
     let b = Int32Array::from(&[Some(2), None, Some(6)]);
-
 
     // compute (probably the fastest implementation of a nullable op you can find out there)
     let c = arithmetics::basic::mul_scalar(&a, &2);
@@ -112,8 +109,7 @@ async fn test_write_parquet() -> Result<()> {
     Ok(())
 }
 
-use arrow2_convert::{ArrowField, ArrowSerialize, ArrowDeserialize};
-use arrow2_convert::serialize::TryIntoArrow;
+use arrow2_convert::{ArrowDeserialize, ArrowField, ArrowSerialize};
 
 #[derive(Clone, Debug, PartialEq, ArrowField, ArrowSerialize, ArrowDeserialize)]
 struct ArrowTest {
@@ -131,11 +127,9 @@ struct ArrowTest {
 //     ];
 //     let arrow_array: Box<dyn Array> = original_array.try_into_arrow().unwrap();
 
-
 //     // declare arrays
 //     // let a = Int32Array::from(&[Some(1), None, Some(3)]);
 //     // let b = Int32Array::from(&[Some(2), None, Some(6)]);
-
 
 //     // compute (probably the fastest implementation of a nullable op you can find out there)
 //     // let c = arithmetics::basic::mul_scalar(&a, &2);

@@ -3,6 +3,7 @@
 use aws_sdk_s3::{Client, Config, Credentials, Endpoint, Region};
 use clap::Parser;
 
+/// CLI for S3 archiver
 #[derive(Parser)]
 #[command(author, about, long_about = None)]
 pub struct Cli {
@@ -111,6 +112,7 @@ impl Cli {
         &self.kafka_addresses
     }
 
+    /// Build a S3 client from the CLI configuration
     pub fn build_client(&self) -> Client {
         // credential provider name is required, but the value doesn't seem to matter
         let provider_name = "opensensor-credentials";

@@ -25,8 +25,9 @@ fn test_timestamp_nanos() {
 #[test]
 fn test_reflection() {
     use std::io::Read;
-    
-    let mut file = File::open("flatbuffers/simple.bfbs").expect("Filed to open flatbuffer schema file");
+
+    let mut file =
+        File::open("flatbuffers/simple.bfbs").expect("Filed to open flatbuffer schema file");
 
     let mut buf = Vec::new();
     file.read_to_end(&mut buf).expect("Failed to read file");

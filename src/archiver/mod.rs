@@ -1,3 +1,5 @@
+//! Archive Measurements to S3 from Redpanda
+
 #[allow(clippy::too_many_arguments)]
 pub mod cli;
 pub mod error;
