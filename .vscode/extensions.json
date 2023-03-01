@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "bungcip.better-toml",
+        "dustypomerleau.rust-syntax",
+        "rust-lang.rust-analyzer",
+        "gruntfuggly.todo-tree",
+        "gaborv.flatbuffers",
+        "zxh404.vscode-proto3"
+    ]
+}

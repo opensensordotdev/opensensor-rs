@@ -1,0 +1,9 @@
+# Rust build
+/target
+
+# Python
+env
+__pycache__
+
+# Minio
+minio

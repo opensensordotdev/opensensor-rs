@@ -1,0 +1,27 @@
+{
+    "python.defaultInterpreterPath": "${workspaceRoot}/env/bin/python",
+    "cSpell.ignorePaths": [
+        "package-lock.json",
+        "node_modules",
+        "vscode-extension",
+        ".git/objects",
+        ".vscode",
+        ".vscode-insiders",
+        "target"
+    ],
+    "cSpell.customDictionaries": {
+        "project-words": {
+            "name": "project-words",
+            "path": "${workspaceRoot}/.vscode/project-words.txt",
+            "description": "Words for opensensor-rs crate",
+            "addWords": true
+        },
+    },
+    "python.testing.pytestArgs": [
+        "crates"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.linting.enabled": true,
+    // "rust-analyzer.checkOnSave.command": "clippy", // Enable Clippy lints when Rust files are saved
+}

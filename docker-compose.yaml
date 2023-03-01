@@ -1,0 +1,180 @@
+version: "3.8"
+
+services:
+
+  redpanda-0: # adapted from redpanda docker-compose on rskafka GitHub repo
+    image: vectorized/redpanda:v22.2.8
+    container_name: opensensor-rs-redpanda-0
+    restart: on-failure
+    ports:
+      - '9010:9010'
+      - '8081:8081'
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 2G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 0
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9010,FOR_PROXY://0.0.0.0:9020
+      - --advertise-kafka-addr PLAINTEXT://redpanda-0:9092,EXTERNAL://127.0.0.1:9010,FOR_PROXY://redpanda-0:9020
+      - --rpc-addr 0.0.0.0:33145
+      - --advertise-rpc-addr redpanda-0:33145
+
+  redpanda-1:
+    image: vectorized/redpanda:v22.2.8
+    container_name: opensensor-rs-redpanda-1
+    restart: on-failure
+    ports:
+      - '9011:9011'
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 2G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 1
+      - --seeds "redpanda-0:33145"
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9011,FOR_PROXY://0.0.0.0:9021
+      - --advertise-kafka-addr PLAINTEXT://redpanda-1:9092,EXTERNAL://127.0.0.1:9011,FOR_PROXY://redpanda-1:9021
+      - --rpc-addr 0.0.0.0:33145
+      - --advertise-rpc-addr redpanda-1:33145
+    depends_on:
+      - redpanda-0
+
+  redpanda-2:
+    image: vectorized/redpanda:v22.2.8
+    container_name: opensensor-rs-redpanda-2
+    restart: on-failure
+    ports:
+      - '9012:9012'
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 2G
+      - --reserve-memory 0M
+      - --overprovisioned
+      - --node-id 2
+      - --seeds "redpanda-0:33145"
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9012,FOR_PROXY://0.0.0.0:9022
+      - --advertise-kafka-addr PLAINTEXT://redpanda-2:9092,EXTERNAL://127.0.0.1:9012,FOR_PROXY://redpanda-2:9022
+      - --rpc-addr 0.0.0.0:33145
+      - --advertise-rpc-addr redpanda-2:33145
+    depends_on:
+      - redpanda-1
+
+  console:
+    image: vectorized/console:latest
+    container_name: opensensor-rs-redpanda-console
+    restart: on-failure
+    volumes:
+      - ./config/redpanda/console-config.yaml:/docker-volume/config.yaml:rw
+    environment:
+      CONFIG_FILEPATH: /docker-volume/config.yaml
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redpanda-0
+
+  # Uncomment and use other command if all scylla nodes are running (if you have above 6 physical CPU cores) 
+  scylla-0:
+    image: scylladb/scylla:5.0.6
+    container_name: opensensor-rs-scylla-0
+    restart: on-failure
+    # Use this version if you have more than 6 physical CPU cores
+    # command: --seeds=scylla-1,scylla-2 --smp 1 --memory 500M --overprovisioned 1 --api-address 0.0.0.0
+    # Use this version if you have less than/equal to 6 physical CPU cores
+    command: --smp 1 --memory 500M --overprovisioned 1 --api-address 0.0.0.0
+    ports: # add to known-hosts in datastore/lib.rs
+      - 9042:9042
+
+  # Use me and scylla-2 if you want a HA scylla setup and have more than 6 physical CPU cores
+  # The --overprovisioned and --smp flags allocate a whole core for each instance...since Redpanda
+  # also uses Seastar as a backend, 3x redpanda and 3x scylla containers will consume all of your cores
+  # and the docker compose up command will fail due to lack of system resources
+
+  # scylla-1:
+  #   image: scylladb/scylla:5.0.6
+  #   container_name: scylla-0
+  #   restart: on-failure
+  #   command: --seeds=scylla-0,scylla-2 --smp 1 --memory 500M --overprovisioned 1 --a4.5.0pi-address 0.0.0.0
+  #   ports: # add to known-hosts in datastore/lib.rs
+  #     - 9043:9042
+  #   depends_on:
+  #     - scylla-0
+
+  # scylla-2:
+  #   image: scylladb/scylla:5.0.6
+  #   container_name: scylla-0
+  #   restart: on-failure
+  #   command: --seeds=scylla-0,scylla-1 --smp 1 --memory 500M --overprovisioned 1 --api-address 0.0.0.0
+  #   ports: # add to known-hosts in datastore/lib.rs
+  #     - 9044:9042
+  #   depends_on:
+  #     - scylla-1
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: opensensor-rs-minio-s3
+    restart: on-failure
+    shm_size: 2gb
+    volumes:
+      - ./minio/data:/data:rw
+      - ./minio/config:/root/.minio
+    environment:
+      MINIO_ROOT_USER: user
+      MINIO_ROOT_PASSWORD: user123456
+      MINIO_DOMAIN: minio-s3
+      MINIO_REGION_NAME: opensensor-region
+    ports: 
+      - "9000:9000"
+      - "9001:9001"
+    entrypoint: sh
+    command: -c 'mkdir -p /data/models && mkdir -p /data/opensensor-archive && mkdir -p /data/loki && minio server /data --console-address "0.0.0.0:9001"'
+
+  prometheus:
+    image: quay.io/prometheus/prometheus:v2.40.5
+    container_name: opensensor-rs-prometheus
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana-oss:9.3.1
+    container_name: opensensor-rs-grafana
+    ports:
+      - 3000:3000
+
+# -target=all -> Run in Monolithic mode where only one loki container is needed for both read + write paths
+# https://grafana.com/docs/loki/latest/fundamentals/architecture/deployment-modes/
+# Stopped at: fixing this error when adding loki config to grafana
+# https://github.com/grafana/loki/blob/main/docs/sources/operations/troubleshooting.md#data-source-connected-but-no-labels-received-verify-that-loki-and-promtail-is-configured-properly
+  loki:
+    container_name: opensensor-rs-loki
+    image: grafana/loki:2.6.1
+    command: "-config.file=/etc/loki/config.yaml"
+    ports:
+      - 3102:3100
+      - 7946
+      - 9095
+    volumes:
+      - ./config/loki/loki-config.yaml:/etc/loki/config.yaml
+    depends_on:
+      - minio
+
+  promtail:
+    container_name: opensensor-rs-promtail
+    image: grafana/promtail:2.6.0
+    volumes:
+      - ./config/promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - ./config/promtail/data:/data
+    command: -config.file=/etc/promtail/promtail-config.yaml
+
+volumes:
+  data: {}
+  config: {}
