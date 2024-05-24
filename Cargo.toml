@@ -2,7 +2,6 @@
 name = "opensensor"
 version = "0.4.0"
 edition = "2021"
-authors = ["Colin Dablain"]
 description = "A crate for streaming and archiving measurements from sensors"
 readme = "README.md"
 repository = "https://github.com/opensensordotdev/opensensor-rs"
